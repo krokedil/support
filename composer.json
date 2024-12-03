@@ -1,0 +1,48 @@
+{
+    "name": "krokedil/support",
+    "description": "The support library allows you to extend your plugin with features that will help you troubleshooting support related issues.",
+    "type": "library",
+    "version": "1.0.0",
+    "authors": [
+        {
+            "name": "Krokedil AB",
+            "email": "info@krokedil.se"
+        }
+    ],
+    "require": {
+        "php": "~7.4 || ~8.0"
+    },
+    "require-dev": {
+        "php-stubs/woocommerce-stubs": "^8.1",
+        "wp-coding-standards/wpcs": "^3.0",
+        "phpcompatibility/php-compatibility": "^9.3",
+        "phpunit/phpunit": "^9.6"
+    },
+    "license": "GPL-3.0-or-later",
+    "autoload": {
+        "psr-4": {
+            "Krokedil\\Support\\": "src/"
+        }
+    },
+    "config": {
+        "platform": {
+            "php": "7.4"
+        },
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true
+        }
+    },
+    "scripts": {
+        "phpcs": [
+            "phpcs --extensions=php -s -p"
+        ],
+        "phpcbf": [
+            "phpcbf -p"
+        ],
+        "phpunit": [
+            "phpunit --configuration phpunit.xml"
+        ]
+    },
+    "prefer-stable": true,
+    "minimum-stability": "dev"
+}
