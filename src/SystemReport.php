@@ -72,13 +72,13 @@ class SystemReport {
 	/**
 	 * Add a log entry to the system report.
 	 *
-	 * @param \WP_Error|array $maybe_error The API request that you want to report about.
+	 * @param \WP_Error|array $response    The API request that you want to report about.
 	 * @param mixed           $extra       Any extra information you want to include in the report.
 	 *
-	 * @return bool
+	 * @return \WP_Error|array
 	 */
-	public function request( $maybe_error, $extra = null ) {
-		if ( ! is_wp_error( $maybe_error ) ) {
+	public function request( $response, $extra = null ) {
+		if ( ! is_wp_error( $response ) ) {
 			return false;
 		}
 
@@ -86,13 +86,14 @@ class SystemReport {
 		$logs[] = array(
 			'timestamp' => current_time( 'mysql' ),
 			'response'  => array(
-				'code'    => $maybe_error->get_error_code(),
-				'message' => $maybe_error->get_error_message(),
+				'code'    => $response->get_error_code(),
+				'message' => $response->get_error_message(),
 				'extra'   => $extra,
 			),
 		);
 
-		return update_option( 'krokedil_support_' . $this->slug, wp_json_encode( $logs ) );
+		update_option( 'krokedil_support_' . $this->slug, wp_json_encode( $logs ) );
+		return $response;
 	}
 
 
