@@ -18,14 +18,14 @@ class SystemReport {
 	public const REGISTRY_OPTION = 'krokedil_support_registry';
 
 	/**
-	 * The plugin slug or gateway ID.
+	 * The gateway ID.
 	 *
 	 * @var string
 	 */
 	private $slug;
 
 	/**
-	 * The name of the plugin or gateway.
+	 * The gateway name (or title).
 	 *
 	 * @var string
 	 */
@@ -34,8 +34,8 @@ class SystemReport {
 	/**
 	 * SystemReport constructor.
 	 *
-	 * @param string $slug The plugin slug or gateway ID.
-	 * @param string $name The name of the plugin or gateway.
+	 * @param string $slug The gateway ID.
+	 * @param string $name The gateway name (or title).
 	 */
 	public function __construct( $slug, $name ) {
 		$this->slug = $slug;
@@ -47,9 +47,9 @@ class SystemReport {
 	}
 
 	/**
-	 * Register the plugin or gateway for the system report.
+	 * Register gateway gateway system report.
 	 *
-	 * @param string $slug The plugin slug or gateway ID.
+	 * @param string $slug The gateway ID.
 	 */
 	private function register( $slug ) {
 		$registry   = get_option( self::REGISTRY_OPTION, array() );
