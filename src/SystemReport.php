@@ -72,10 +72,11 @@ class SystemReport {
 	/**
 	 * Add a log entry to the system report.
 	 *
-	 * @param \WP_Error|array $response    The API request that you want to report about.
-	 * @param mixed           $extra       Any extra information you want to include in the report.
+	 * @template T
+	 * @param T     $response The API request that you want to report about.
+	 * @param mixed $extra    Any extra information you want to include in the report.
 	 *
-	 * @return \WP_Error|array
+	 * @return T
 	 */
 	public function request( $response, $extra = null ) {
 		if ( ! is_wp_error( $response ) ) {
