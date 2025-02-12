@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 		</th>
 	</tr>
 	<?php
-	$report = get_option( 'krokedil_support_' . $slug, array() );
+	$report = get_option( 'krokedil_support_' . $id, array() );
 	if ( ! empty( $report ) ) {
 		$report = array_reverse( json_decode( $report, true ) );
 		?>

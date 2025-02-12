@@ -22,7 +22,7 @@ class SystemReport {
 	 *
 	 * @var string
 	 */
-	private $slug;
+	private $id;
 
 	/**
 	 * The gateway name (or title).
@@ -34,13 +34,13 @@ class SystemReport {
 	/**
 	 * SystemReport constructor.
 	 *
-	 * @param string $slug The gateway ID.
+	 * @param string $id The gateway ID.
 	 * @param string $name The gateway name (or title).
 	 */
-	public function __construct( $slug, $name ) {
-		$this->slug = $slug;
+	public function __construct( $id, $name ) {
+		$this->id   = $id;
 		$this->name = $name;
-		$this->register( $slug );
+		$this->register( $id );
 
 		add_action( 'woocommerce_system_status_report', array( $this, 'add_status_page_box' ) );
 		add_action( 'woocommerce_cleanup_logs', array( __CLASS__, 'remove_old_entries' ) );
@@ -49,11 +49,11 @@ class SystemReport {
 	/**
 	 * Register gateway gateway system report.
 	 *
-	 * @param string $slug The gateway ID.
+	 * @param string $id The gateway ID.
 	 */
-	private function register( $slug ) {
+	private function register( $id ) {
 		$registry   = get_option( self::REGISTRY_OPTION, array() );
-		$registry[] = $slug;
+		$registry[] = $id;
 
 		update_option( self::REGISTRY_OPTION, array_unique( $registry ) );
 	}
@@ -64,7 +64,7 @@ class SystemReport {
 	 * @return void
 	 */
 	public function add_status_page_box() {
-		$slug = $this->slug;
+		$id   = $this->id;
 		$name = $this->name;
 		include_once __DIR__ . '/includes/admin/views/status-report.php';
 	}
@@ -82,7 +82,7 @@ class SystemReport {
 			return false;
 		}
 
-		$logs   = json_decode( get_option( 'krokedil_support_' . $this->slug, '[]' ), true );
+		$logs   = json_decode( get_option( 'krokedil_support_' . $this->id, '[]' ), true );
 		$logs[] = array(
 			'timestamp' => current_time( 'mysql' ),
 			'response'  => array(
@@ -92,7 +92,7 @@ class SystemReport {
 			),
 		);
 
-		update_option( 'krokedil_support_' . $this->slug, wp_json_encode( $logs ) );
+		update_option( 'krokedil_support_' . $this->id, wp_json_encode( $logs ) );
 		return $response;
 	}
 
@@ -104,8 +104,8 @@ class SystemReport {
 	 */
 	public static function remove_old_entries() {
 		$registry = get_option( self::REGISTRY_OPTION, array() );
-		foreach ( $registry as $slug ) {
-			$reports = json_decode( get_option( 'krokedil_support_' . $slug, '[]' ), true );
+		foreach ( $registry as $id ) {
+			$reports = json_decode( get_option( 'krokedil_support_' . $id, '[]' ), true );
 			if ( empty( $reports ) ) {
 				continue;
 			}
@@ -116,7 +116,7 @@ class SystemReport {
 					unset( $reports[ $report ] );
 				}
 			}
-			update_option( 'krokedil_support_' . $slug, wp_json_encode( $reports ) );
+			update_option( 'krokedil_support_' . $id, wp_json_encode( $reports ) );
 		}
 	}
 }
