@@ -79,7 +79,7 @@ class SystemReport {
 	 */
 	public function request( $response, $extra = null ) {
 		if ( ! is_wp_error( $response ) ) {
-			return false;
+			return $response;
 		}
 
 		$logs   = json_decode( get_option( 'krokedil_support_' . $this->id, '[]' ), true );
