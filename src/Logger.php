@@ -119,7 +119,7 @@ class Logger {
 		}
 
 		$context = array( 'source' => $this->id );
-		$context = ! empty( $args ) ? array_merge( $context, $args ) : $context;
+		$context = ! empty( $args ) ? array_merge( $context, array_merge( ...$args ) ) : $context;
 		$this->logger->log( $level, $message, $context );
 	}
 
