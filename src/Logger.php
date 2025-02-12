@@ -113,8 +113,8 @@ class Logger {
 			return;
 		}
 
-		$level = WC_Log_Levels::get_level_severity( $level );
-		if ( $level < WC_Log_Levels::INFO && ! $this->extended_logging ) {
+		$severity = WC_Log_Levels::get_level_severity( $level );
+		if ( $severity <= WC_Log_Levels::get_level_severity( WC_Log_Levels::INFO ) && ! $this->extended_logging ) {
 			return;
 		}
 
