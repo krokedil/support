@@ -114,5 +114,7 @@ class LogParser {
 				}
 			}
 		}
+
+		fclose( $handle );
 	}
 }
