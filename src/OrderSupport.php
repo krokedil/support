@@ -33,12 +33,52 @@ class OrderSupport {
 	public function __construct( $log_context = null, $log_metadata = null ) {
 		$this->log_context  = $log_context;
 		$this->log_metadata = $log_metadata;
+
+		$this->init();
+	}
+
+	/**
+	 * Initialize the class.
+	 *
+	 * @return void
+	 */
+	public function init() {
+		error_log( $this::class );
+		add_action( 'wc_ajax_krokedil_support_export_order', array( $this, 'krokedil_support_export_order' ) );
+	}
+
+	/**
+	 * Add a button for exporting an order from the admin order page.
+	 *
+	 * @param \WC_Order $order The order object.
+	 * @param bool      $print Whether to print the button or return it as a string.
+	 *
+	 * @return string|void
+	 */
+	public function add_export_order_button( $order, $print = true ) {
+		// Enqueue the scripts for the admin order page.
+		Assets::enqueue_admin_order_scripts( $order );
+
+		if ( ! $print ) {
+			ob_start();
+		}
+
+		?>
+		<button id="krokedil-support-export-order" class="button button-secondary" type="button" style="margin-top: 10px; margin-bottom: 10px;">
+			<?php esc_html_e( 'Export order for support', 'krokedil-support' ); ?>
+		</button>
+		<?php
+
+		if ( ! $print ) {
+			return ob_get_clean();
+		}
 	}
 
 	/**
 	 * Export the order.
 	 *
 	 * @param \WC_Order[]|\WC_Order $orders The order IDs to export.
+	 * @param array                 $integration_orders The integration order data.
 	 *
 	 * @return array
 	 */
@@ -73,17 +113,22 @@ class OrderSupport {
 		 *     ],
 		 * ]
 		 */
-		$combined_data = array();
-		foreach ( $orders as $order ) {
+		$result = array(
+			'orders' => array(),
+			'system_report' => SystemReport::get_report(),
+		);
+
+		foreach ( $orders as $i => $order ) {
 			$order_id = $order->get_id();
 
-			$combined_data[ $order_id ] = array(
-				'data' => $order_data[ $order_id ] ?? array(),
+			$result['orders'][ $order_id ] = array(
+				'wc_order' => $order_data[ $order_id ] ?? array(),
+				'integration_order' => $this->get_integration_order_data( $order ),
 				'logs' => $log_data[ $order_id ] ?? array(),
 			);
 		}
 
-		return $combined_data;
+		return $result;
 	}
 
 	/**
@@ -136,5 +181,36 @@ class OrderSupport {
 		}
 
 		return $order_data;
+	}
+
+	/**
+	 * Export an order for support.
+	 *
+	 * @return void
+	 */
+	public function krokedil_support_export_order() {
+		check_ajax_referer( 'krokedil_support_export_order', 'nonce' );
+
+		$order_id = filter_input( INPUT_POST, 'order_id', FILTER_SANITIZE_NUMBER_INT );
+		if ( ! current_user_can( 'edit_shop_orders' ) || ! $order_id ) {
+			wp_send_json_error( __( 'Invalid order ID.', 'krokedil-support' ) );
+		}
+
+		$order = wc_get_order( $order_id );
+
+		$exported_order = $this->export_orders( $order );
+
+		wp_send_json_success( $exported_order );
+	}
+
+	/**
+	 * Abstract method to get the integrations order data.
+	 *
+	 * @param \WC_Order $order The order object.
+	 *
+	 * @return array
+	 */
+	public function get_integration_order_data( $orders ) {
+		return array();
 	}
 }
