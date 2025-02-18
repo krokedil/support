@@ -55,6 +55,44 @@ if ( ! defined( 'ABSPATH' ) ) {
 			</tr>
 		<?php
 	}
+
+	$section = "$name plugin settings";
+	?>
+	</tbody>
+</table>
+<table class="wc_status_table widefat" cellspacing="0">
+	<thead>
+	<tr>
+		<th colspan="6" data-export-label="<?php echo esc_attr( $section ); ?>">
+			<h2><?php echo esc_html( $section ); ?></h2>
+		</th>
+	</tr>
+	<?php
+	if ( ! empty( $settings ) ) {
+		?>
+		</thead>
+		<tbody>
+		<?php
+		foreach ( $settings as $setting ) {
+			$title = $setting['title'];
+			$value = $setting['value'];
+			?>
+			<tr>
+				<td><?php echo esc_html( $title ); ?></td>
+				<td class="help"></td>
+				<td><?php echo esc_html( $value ); ?></td>
+			</tr>
+				<?php
+		}
+	} else {
+		?>
+		</thead>
+		<tbody>
+			<tr>
+				<td colspan="6" data-export-label="No errors"><?php esc_html_e( 'Settings could not be retrieved.', 'krokedil-support' ); ?></td>
+			</tr>
+		<?php
+	}
 	?>
 	</tbody>
 </table>
