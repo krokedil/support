@@ -43,7 +43,6 @@ class OrderSupport {
 	 * @return void
 	 */
 	public function init() {
-		error_log( $this::class );
 		add_action( 'wc_ajax_krokedil_support_export_order', array( $this, 'krokedil_support_export_order' ) );
 	}
 
