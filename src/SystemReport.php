@@ -55,10 +55,13 @@ class SystemReport {
 	 * @param string $id The gateway ID.
 	 */
 	private function register( $id ) {
-		$registry   = get_option( self::REGISTRY_OPTION, array() );
-		$registry[] = $id;
+		$registry = get_option( self::REGISTRY_OPTION, array() );
+		if ( isset( $registry[ $id ] ) ) {
+			return;
+		}
 
-		update_option( self::REGISTRY_OPTION, array_unique( $registry ) );
+		$registry[] = $id;
+		update_option( self::REGISTRY_OPTION, $registry );
 	}
 
 	/**
