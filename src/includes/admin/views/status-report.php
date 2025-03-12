@@ -9,7 +9,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 <table class="wc_status_table widefat" cellspacing="0">
 	<thead>
 	<tr>
-		<th colspan="6" data-export-label="Krokedil Support Request Log">
+		<th colspan="6" data-export-label="<?php esc_attr( $name ) . 'Request Log'; ?>">
 			<h2><?php echo esc_html( $name ); ?></h2>
 		</th>
 	</tr>
