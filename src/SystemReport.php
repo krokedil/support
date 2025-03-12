@@ -43,25 +43,9 @@ class SystemReport {
 	public function __construct( $id, $name ) {
 		$this->id   = $id;
 		$this->name = $name;
-		$this->register( $id );
 
 		add_action( 'woocommerce_system_status_report', array( $this, 'add_status_page_box' ) );
-		add_action( 'woocommerce_cleanup_logs', array( __CLASS__, 'remove_old_entries' ) );
-	}
-
-	/**
-	 * Register gateway gateway system report.
-	 *
-	 * @param string $id The gateway ID.
-	 */
-	private function register( $id ) {
-		$registry = get_option( self::REGISTRY_OPTION, array() );
-		if ( isset( $registry[ $id ] ) ) {
-			return;
-		}
-
-		$registry[] = $id;
-		update_option( self::REGISTRY_OPTION, $registry );
+		add_action( 'woocommerce_cleanup_logs', array( $this, 'remove_old_entries' ) );
 	}
 
 	/**
@@ -228,21 +212,15 @@ class SystemReport {
 	 *
 	 * @hook woocommerce_cleanup_logs
 	 */
-	public static function remove_old_entries() {
-		$registry = get_option( self::REGISTRY_OPTION, array() );
-		foreach ( $registry as $id ) {
-			$reports = json_decode( get_option( 'krokedil_support_' . $id, '[]' ), true );
-			if ( empty( $reports ) ) {
-				continue;
-			}
+	public function remove_old_entries() {
+		$retention_period = wc_get_container()->get( Settings::class )->get_retention_period();
 
-			$retention_period = wc_get_container()->get( Settings::class )->get_retention_period();
-			foreach ( $reports as $report ) {
-				if ( strtotime( $report['timestamp'] ) < strtotime( "-{$retention_period} days" ) ) {
-					unset( $reports[ $report ] );
-				}
+		$reports = json_decode( get_option( 'krokedil_support_' . $this->id, '[]' ), true );
+		foreach ( $reports as $report ) {
+			if ( strtotime( $report['timestamp'] ) < strtotime( "-{$retention_period} days" ) ) {
+				unset( $reports[ $report ] );
 			}
-			update_option( 'krokedil_support_' . $id, wp_json_encode( $reports ) );
 		}
+		update_option( 'krokedil_support_' . $this->id, wp_json_encode( $reports ) );
 	}
 }
