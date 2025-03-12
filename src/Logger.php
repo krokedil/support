@@ -108,7 +108,7 @@ class Logger {
 	 *    - `debug`: Debug-level messages.
 	 * @param array  $args Additional context to log.
 	 */
-	private function log( $message, $level = WC_Log_Levels::INFO, ...$args ) {
+	public function log( $message, $level = WC_Log_Levels::INFO, ...$args ) {
 		if ( ! $this->enabled ) {
 			return;
 		}
