@@ -35,15 +35,6 @@ class Logger {
 	private $enabled = false;
 
 	/**
-	 * Whether extended logging is enabled.
-	 *
-	 * If enabled, WC_Log_Levels::DEBUG messages will be logged.
-	 *
-	 * @var bool
-	 */
-	private $extended_logging = false;
-
-	/**
 	 * Logger constructor.
 	 *
 	 * @param string $id Gateway ID.
@@ -54,9 +45,8 @@ class Logger {
 
 		add_filter( "woocommerce_settings_api_form_fields_{$this->id}", array( $this, 'add_settings_fields' ) );
 
-		$settings               = get_option( 'woocommerce_' . $this->id . '_settings', array() );
-		$this->enabled          = isset( $settings['logging'] ) && wc_string_to_bool( $settings['logging'] );
-		$this->extended_logging = isset( $settings['extended_logging'] ) && wc_string_to_bool( $settings['extended_logging'] );
+		$settings      = get_option( 'woocommerce_' . $this->id . '_settings', array() );
+		$this->enabled = isset( $settings['logging'] ) && wc_string_to_bool( $settings['logging'] );
 	}
 
 	/**
@@ -110,11 +100,6 @@ class Logger {
 	 */
 	public function log( $message, $level = WC_Log_Levels::INFO, ...$args ) {
 		if ( ! $this->enabled ) {
-			return;
-		}
-
-		$severity = WC_Log_Levels::get_level_severity( $level );
-		if ( $severity <= WC_Log_Levels::get_level_severity( WC_Log_Levels::INFO ) && ! $this->extended_logging ) {
 			return;
 		}
 
