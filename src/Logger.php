@@ -39,14 +39,10 @@ class Logger {
 	 *
 	 * @param string $id Gateway ID.
 	 */
-	public function __construct( $id ) {
-		$this->logger = new \WC_Logger();
-		$this->id     = $id;
-
-		add_filter( "woocommerce_settings_api_form_fields_{$this->id}", array( $this, 'add_settings_fields' ) );
-
-		$settings      = get_option( 'woocommerce_' . $this->id . '_settings', array() );
-		$this->enabled = isset( $settings['logging'] ) && wc_string_to_bool( $settings['logging'] );
+	public function __construct( $id, $enabled ) {
+		$this->logger  = new \WC_Logger();
+		$this->id      = $id;
+		$this->enabled = $enabled;
 	}
 
 	/**
@@ -58,7 +54,7 @@ class Logger {
 	 *
 	 * @return array
 	 */
-	public function add_settings_fields( $form_fields ) {
+	public static function add_settings_fields( $form_fields ) {
 		$settings = array(
 			'troubleshooting'  => array(
 				'title' => __( 'Troubleshooting', 'krokedil-support' ),
