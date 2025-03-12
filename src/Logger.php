@@ -21,7 +21,7 @@ class Logger {
 	private $logger;
 
 	/**
-	 * Gateway ID.
+	 * Plugin ID.
 	 *
 	 * @var string
 	 */
@@ -37,7 +37,7 @@ class Logger {
 	/**
 	 * Logger constructor.
 	 *
-	 * @param string $id Gateway ID.
+	 * @param string $id Plugin ID.
 	 */
 	public function __construct( $id, $enabled ) {
 		$this->logger  = new \WC_Logger();
@@ -48,7 +48,7 @@ class Logger {
 	/**
 	 * Add settings fields.
 	 *
-	 * Extends the gateway's settings fields with troubleshooting settings.
+	 * Extends the plugin's settings fields with troubleshooting settings.
 	 *
 	 * @param array $form_fields Form fields.
 	 *

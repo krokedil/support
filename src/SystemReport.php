@@ -18,14 +18,14 @@ class SystemReport {
 	public const REGISTRY_OPTION = 'krokedil_support_registry';
 
 	/**
-	 * The gateway ID.
+	 * Plugin ID.
 	 *
 	 * @var string
 	 */
 	private $id;
 
 	/**
-	 * The gateway name (or title).
+	 * The plugin name (or title).
 	 *
 	 * @var string
 	 */
@@ -37,8 +37,8 @@ class SystemReport {
 	/**
 	 * SystemReport constructor.
 	 *
-	 * @param string $id The gateway ID.
-	 * @param string $name The gateway name (or title).
+	 * @param string $id The plugin ID.
+	 * @param string $name The plugin name (or title).
 	 */
 	public function __construct( $id, $name ) {
 		$this->id   = $id;
