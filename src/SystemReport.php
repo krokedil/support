@@ -2,7 +2,8 @@
 
 namespace Krokedil\Support;
 
-use Automattic\WooCommerce\Internal\Admin\Logging\Settings;
+namespace Automattic\WooCommerce\Utilities;
+
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -213,7 +214,7 @@ class SystemReport {
 	 * @hook woocommerce_cleanup_logs
 	 */
 	public function remove_old_entries() {
-		$retention_period = wc_get_container()->get( Settings::class )->get_retention_period();
+		$retention_period = LoggingUtil::get_retention_period();
 
 		$reports = json_decode( get_option( 'krokedil_support_' . $this->id, '[]' ), true );
 		foreach ( $reports as $report ) {
