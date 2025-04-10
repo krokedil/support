@@ -1,5 +1,4 @@
 <?php
-
 namespace Krokedil\Support;
 
 use WC_Log_Levels;
