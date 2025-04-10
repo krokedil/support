@@ -14,9 +14,6 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @package Krokedil\Support
  */
 class SystemReport {
-
-	public const REGISTRY_OPTION = 'krokedil_support_registry';
-
 	/**
 	 * Plugin ID.
 	 *
