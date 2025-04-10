@@ -3,7 +3,7 @@
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
-$report = json_decode( get_option( 'krokedil_support_' . $id, '[]' ), true );
+$report         = json_decode( get_option( 'krokedil_support_' . $id, '[]' ), true );
 $settings_title = "$name plugin settings";
 
 ?>
@@ -23,9 +23,9 @@ $settings_title = "$name plugin settings";
 		</tr>
 	</thead>
 	<tbody>
-		<?php if ( ! empty( $report ) ): ?>
+		<?php if ( ! empty( $report ) ) : ?>
 			<?php $report = array_reverse( json_decode( $report, true ) ); ?>
-			<?php foreach ( $report as $log ): ?>
+			<?php foreach ( $report as $log ) : ?>
 				<tr>
 					<td><?php echo esc_html( $log['timestamp'] ); ?></td>
 					<td class="help"></td>
@@ -34,7 +34,7 @@ $settings_title = "$name plugin settings";
 					<td><?php echo esc_html( trim( empty( $log['response']['extra'] ) ? '' : wp_json_encode( $log['response']['extra'] ), '"' ) ); ?></td>
 				</tr>
 			<?php endforeach; ?>
-		<?php else: ?>
+		<?php else : ?>
 			<tr>
 				<td colspan="6" data-export-label="No errors"><?php esc_html_e( 'No error logs', 'krokedil-support' ); ?></td>
 			</tr>
@@ -50,15 +50,21 @@ $settings_title = "$name plugin settings";
 		</tr>
 	</thead>
 	<tbody>
-		<?php if ( ! empty( $settings ) ): ?>
-			<?php foreach ( $settings as $setting ): ?>
+		<?php if ( ! empty( $settings ) ) : ?>
+			<?php foreach ( $settings as $setting ) : ?>
 				<tr>
-					<td><?php echo esc_html( $setting['title'] ); ?></td>
-					<td class="help"></td>
-					<td><?php echo esc_html( $setting['value'] ); ?></td>
+					<?php if ( $setting['type'] === 'section' ) : ?>
+						<td colspan="6" data-export-label="<?php echo esc_attr( $setting['title'] ); ?>">
+							<h2><?php echo esc_html( $setting['title'] ); ?></h2>
+						</td>
+					<?php else : ?>
+						<td><?php echo esc_html( $setting['title'] ); ?></td>
+						<td class="help"></td>
+						<td><?php echo esc_html( $setting['value'] ); ?></td>
+					<?php endif; ?>
 				</tr>
 			<?php endforeach; ?>
-		<?php else: ?>
+		<?php else : ?>
 			<tr>
 				<td colspan="6" data-export-label="No errors"><?php esc_html_e( 'Settings could not be retrieved.', 'krokedil-support' ); ?></td>
 			</tr>
