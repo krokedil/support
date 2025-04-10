@@ -28,8 +28,49 @@ class SystemReport {
 	 */
 	private $name;
 
-	private $included = array();
+	/**
+	 * The included settings for the system report.
+	 *
+	 * @var array
+	 */
+	private $included_settings = array();
+
+	/**
+	 * The excluded settings for the system report.
+	 *
+	 * @var array
+	 */
 	private $excluded = array();
+
+	/**
+	 * The tracked field types for the system report.
+	 *
+	 * @var array
+	 */
+	private $tracked_field_types = array(
+		'text',
+		'textarea',
+		'select',
+		'multiselect',
+		'radio',
+		'checkbox',
+		'number',
+		'email',
+		'tel',
+		'url',
+		'color',
+		'date',
+		'file',
+	);
+
+	/**
+	 * List of skipped settings.
+	 *
+	 * @var array
+	 */
+	private $skipped_settings = array(
+		'title' => 'enable/disable',
+	);
 
 	/**
 	 * SystemReport constructor.
@@ -51,24 +92,6 @@ class SystemReport {
 	 * @return array|false An associative title:value array of the current settings. False if plugin settings is cannot be retrieved.
 	 */
 	private function get_current_settings() {
-		$tracked = array(
-			'text',
-			'textarea',
-			'select',
-			'multiselect',
-			'radio',
-			'checkbox',
-			'number',
-			'email',
-			'tel',
-			'url',
-			'color',
-			'date',
-			'file',
-		);
-
-		$skipped = array_merge( array( 'title' => 'enable/disable' ), $this->excluded );
-
 		$payment_gateways = WC()->payment_gateways()->payment_gateways();
 		$gateway          = $payment_gateways[ $this->id ] ?? null;
 		$form_fields      = $gateway ? $gateway->get_form_fields() : array();
@@ -80,43 +103,11 @@ class SystemReport {
 		$output   = array();
 		$settings = get_option( 'woocommerce_' . $this->id . '_settings', array() );
 		foreach ( $settings as $setting_key => $value ) {
-			$form_field = $form_fields[ $setting_key ];
+			$form_field = $form_fields[ $setting_key ]  ?? array();
 
-			if ( ! empty( $this->included ) ) {
-				foreach ( $this->included as $setting ) {
-					if ( is_array( $setting ) ) {
-						if ( $setting['value'] !== $form_field[ $setting['key'] ] ) {
-							continue;
-						}
-					} elseif ( $setting !== $setting_key ) {
-							continue;
-					}
-				}
-			} else {
-
-				if ( ! in_array( $form_field['type'], $tracked, true ) ) {
-					continue;
-				}
-
-				if ( ! isset( $form_field['title'] ) ) {
-					continue;
-				}
-
-				if ( in_array( strtolower( $form_field['title'] ), $skipped, true ) ) {
-					continue;
-				}
-
-				foreach ( $skipped as $setting ) {
-					// Skip based on specific form field key, and value.
-					if ( is_array( $setting ) ) {
-						if ( $setting['value'] === $form_field[ $setting['key'] ] ) {
-							continue;
-						}
-						// Skip based on setting name.
-					} elseif ( $skipped === $setting_key ) {
-						continue;
-					}
-				}
+			// Check if the form field is valid for the system report output.
+			if ( ! $this->is_form_field_valid( $form_field, $setting_key ) ) {
+				continue;
 			}
 
 			if ( empty( $value ) ) {
@@ -131,6 +122,81 @@ class SystemReport {
 		}
 
 		return $output;
+	}
+
+	/**
+	 * Check if a form field is valid for the system report output.
+	 *
+	 * @param array $form_field The form field to check.
+	 * @param string $setting_key The setting key to check against.
+	 *
+	 * @return bool True if the form field is valid, false otherwise.
+	 */
+	private function is_form_field_valid( $form_field, $setting_key ) {
+		// If the form field is empty, return false.
+		if ( empty( $form_field ) ) {
+			return false;
+		}
+
+		if ( ! empty( $this->included_settings ) ) { // If there are included settings, check if the form field is valid in the included settings. And skip any other checks.
+			return $this->is_form_field_included( $form_field, $setting_key );
+		}
+
+		if ( ! in_array( $form_field['type'], $this->tracked_field_types, true ) ) { // Skip any form field types that are not in the list of tracked field types.
+			return false;
+		}
+
+		if ( ! isset( $form_field['title'] ) ) { // Skip any form fields that do not have a title.
+			return false;
+		}
+
+		if ( in_array( strtolower( $form_field['title'] ), $this->skipped_settings, true ) ) { // Skip any form fields that have a title that is in the skipped array.
+			return false;
+		}
+
+		return $this->skip_setting( $form_field, $setting_key ); // Check if the setting should be skipped or not.
+	}
+
+	/**
+	 * Check if the form field is valid in the included settings.
+	 *
+	 * @param array $form_field The form field to check.
+	 * @param string $setting_key The setting key to check against.
+	 *
+	 * @return bool True if the form field is valid, false otherwise.
+	 */
+	private function is_form_field_included( $form_field, $setting_key ) {
+		// Loop the included settings and check if the form field is valid.
+		foreach ( $this->included_settings as $included_setting ) {
+			if ( is_array( $included_setting ) ) {
+				return $included_setting['value'] === $form_field[ $included_setting['key'] ];
+			}
+
+			return $included_setting === $setting_key;
+		}
+
+		// Default to false if no match is found.
+		return false;
+	}
+
+	/**
+	 * Check if the setting should be skipped or not.
+	 *
+	 * @param array $form_field The form field to check.
+	 * @param string $setting_key The setting key to check against.
+	 *
+	 * @return bool True if the setting should be skipped, false otherwise.
+	 */
+	private function skip_setting( $form_field, $setting_key ) {
+		foreach ( $this->skipped_settings as $skipped_setting ) {
+			// Skip based on specific form field key, and value.
+			if ( is_array( $skipped_setting ) ) {
+				return $skipped_setting['value'] !== $form_field[ $skipped_setting['key'] ];
+			}
+
+			// Skip the setting if the setting key matches the skipped setting key.
+			return $skipped_setting !== $setting_key;
+		}
 	}
 
 	/**
@@ -160,7 +226,7 @@ class SystemReport {
 	 * @param array $settings The settings to include.
 	 */
 	public function include( $settings ) {
-		$this->included = $settings;
+		$this->included_settings = $settings;
 	}
 
 	/**
@@ -179,11 +245,10 @@ class SystemReport {
 	/**
 	 * Add a log entry to the system report.
 	 *
-	 * @template T
-	 * @param T     $response The API request that you want to report about.
+	 * @param array|object|\WP_Error     $response The API request that you want to report about.
 	 * @param mixed $extra    Any extra information you want to include in the report.
 	 *
-	 * @return T
+	 * @return array|object|\WP_Error
 	 */
 	public function request( $response, $extra = null ) {
 		if ( ! is_wp_error( $response ) ) {
