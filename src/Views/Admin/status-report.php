@@ -3,95 +3,65 @@
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
+$report = json_decode( get_option( 'krokedil_support_' . $id, '[]' ), true );
+$settings_title = "$name plugin settings";
 
 ?>
 <table class="wc_status_table widefat" cellspacing="0">
 	<thead>
-	<tr>
-		<th colspan="6" data-export-label="<?php esc_attr( $name ) . 'Request Log'; ?>">
-			<h2><?php echo esc_html( $name ); ?></h2>
-		</th>
-	</tr>
-	<?php
-	$report = get_option( 'krokedil_support_' . $id, array() );
-	if ( ! empty( $report ) ) {
-		$report = array_reverse( json_decode( $report, true ) );
-		?>
-			<tr>
-				<td><strong><?php esc_html_e( 'Timestamp', 'krokedil-support' ); ?></strong></td>
-				<td class="help"></td>
-				<td><strong><?php esc_html_e( 'Code', 'krokedil-support' ); ?></strong></td>
-				<td><strong><?php esc_html_e( 'Message', 'krokedil-support' ); ?></strong></td>
-				<td><strong><?php esc_html_e( 'Details', 'krokedil-support' ); ?></strong></td>
-			</tr>
-		</thead>
-		<tbody>
-		<?php
-		foreach ( $report as $log ) {
-			$timestamp = $log['timestamp'];
-			$code      = $log['response']['code'];
-			$message   = trim( wp_json_encode( $log['response']['message'] ), '"' );
-
-			$extra = $log['response']['extra'];
-			$extra = empty( $extra ) ? '' : wp_json_encode( $extra );
-
-			?>
-			<tr>
-				<td><?php echo esc_html( $timestamp ); ?></td>
-				<td class="help"></td>
-				<td><?php echo esc_html( $code ); ?></td>
-				<td><?php echo esc_html( trim( $message, '"' ) ); ?></td>
-				<td><?php echo esc_html( trim( $extra, '"' ) ); ?></td>
-			</tr>
-			<?php
-		}
-	} else {
-		?>
-		</thead>
-		<tbody>
+		<tr>
+			<th colspan="6" data-export-label="<?php esc_attr( $name ) . ' request log'; ?>">
+				<h2><?php echo esc_html( $name ) . ' request log'; ?></h2>
+			</th>
+		</tr>
+		<tr>
+			<td><strong><?php esc_html_e( 'Timestamp', 'krokedil-support' ); ?></strong></td>
+			<td class="help"></td>
+			<td><strong><?php esc_html_e( 'Code', 'krokedil-support' ); ?></strong></td>
+			<td><strong><?php esc_html_e( 'Message', 'krokedil-support' ); ?></strong></td>
+			<td><strong><?php esc_html_e( 'Details', 'krokedil-support' ); ?></strong></td>
+		</tr>
+	</thead>
+	<tbody>
+		<?php if ( ! empty( $report ) ): ?>
+			<?php $report = array_reverse( json_decode( $report, true ) ); ?>
+			<?php foreach ( $report as $log ): ?>
+				<tr>
+					<td><?php echo esc_html( $log['timestamp'] ); ?></td>
+					<td class="help"></td>
+					<td><?php echo esc_html( $log['response']['code'] ); ?></td>
+					<td><?php echo esc_html( trim( wp_json_encode( $log['response']['message'] ), '"' ) ); ?></td>
+					<td><?php echo esc_html( trim( empty( $log['response']['extra'] ) ? '' : wp_json_encode( $log['response']['extra'] ), '"' ) ); ?></td>
+				</tr>
+			<?php endforeach; ?>
+		<?php else: ?>
 			<tr>
 				<td colspan="6" data-export-label="No errors"><?php esc_html_e( 'No error logs', 'krokedil-support' ); ?></td>
 			</tr>
-		<?php
-	}
-
-	$section = "$name plugin settings";
-	?>
+		<?php endif; ?>
 	</tbody>
 </table>
 <table class="wc_status_table widefat" cellspacing="0">
 	<thead>
-	<tr>
-		<th colspan="6" data-export-label="<?php echo esc_attr( $section ); ?>">
-			<h2><?php echo esc_html( $section ); ?></h2>
-		</th>
-	</tr>
-	<?php
-	if ( ! empty( $settings ) ) {
-		?>
-		</thead>
-		<tbody>
-		<?php
-		foreach ( $settings as $setting ) {
-			$title = $setting['title'];
-			$value = $setting['value'];
-			?>
-			<tr>
-				<td><?php echo esc_html( $title ); ?></td>
-				<td class="help"></td>
-				<td><?php echo esc_html( $value ); ?></td>
-			</tr>
-				<?php
-		}
-	} else {
-		?>
-		</thead>
-		<tbody>
+		<tr>
+			<th colspan="6" data-export-label="<?php echo esc_attr( $settings_title ); ?>">
+				<h2><?php echo esc_html( $settings_title ); ?></h2>
+			</th>
+		</tr>
+	</thead>
+	<tbody>
+		<?php if ( ! empty( $settings ) ): ?>
+			<?php foreach ( $settings as $setting ): ?>
+				<tr>
+					<td><?php echo esc_html( $setting['title'] ); ?></td>
+					<td class="help"></td>
+					<td><?php echo esc_html( $setting['value'] ); ?></td>
+				</tr>
+			<?php endforeach; ?>
+		<?php else: ?>
 			<tr>
 				<td colspan="6" data-export-label="No errors"><?php esc_html_e( 'Settings could not be retrieved.', 'krokedil-support' ); ?></td>
 			</tr>
-		<?php
-	}
-	?>
+		<?php endif; ?>
 	</tbody>
 </table>
