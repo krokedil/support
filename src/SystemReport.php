@@ -1,8 +1,7 @@
 <?php
-
 namespace Krokedil\Support;
 
-namespace Automattic\WooCommerce\Utilities;
+use Automattic\WooCommerce\Utilities\LoggingUtil;
 
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -177,7 +176,7 @@ class SystemReport {
 
 		$id   = $this->id;
 		$name = $this->name;
-		include_once __DIR__ . '/includes/admin/views/status-report.php';
+		include_once __DIR__ . '/Views/Admin/status-report.php';
 	}
 
 	/**
