@@ -1,5 +1,4 @@
 <?php
-namespace Krokedil\Support;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -19,11 +18,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 		$report = array_reverse( json_decode( $report, true ) );
 		?>
 			<tr>
-				<td ><strong><?php esc_html_e( 'Timestamp', 'krokedil-support' ); ?></strong></td>
+				<td><strong><?php esc_html_e( 'Timestamp', 'krokedil-support' ); ?></strong></td>
 				<td class="help"></td>
-				<td ><strong><?php esc_html_e( 'Code', 'krokedil-support' ); ?></strong></td>
-				<td ><strong><?php esc_html_e( 'Message', 'krokedil-support' ); ?></strong></td>
-				<td ><strong><?php esc_html_e( 'Details', 'krokedil-support' ); ?></strong></td>
+				<td><strong><?php esc_html_e( 'Code', 'krokedil-support' ); ?></strong></td>
+				<td><strong><?php esc_html_e( 'Message', 'krokedil-support' ); ?></strong></td>
+				<td><strong><?php esc_html_e( 'Details', 'krokedil-support' ); ?></strong></td>
 			</tr>
 		</thead>
 		<tbody>
