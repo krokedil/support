@@ -36,34 +36,6 @@ class SystemReport {
 	private $included_settings = array();
 
 	/**
-	 * The excluded settings for the system report.
-	 *
-	 * @var array
-	 */
-	private $excluded = array();
-
-	/**
-	 * The tracked field types for the system report.
-	 *
-	 * @var array
-	 */
-	private $tracked_field_types = array(
-		'text',
-		'textarea',
-		'select',
-		'multiselect',
-		'radio',
-		'checkbox',
-		'number',
-		'email',
-		'tel',
-		'url',
-		'color',
-		'date',
-		'file',
-	);
-
-	/**
 	 * List of skipped settings.
 	 *
 	 * @var array
@@ -78,9 +50,10 @@ class SystemReport {
 	 * @param string $id The plugin ID.
 	 * @param string $name The plugin name (or title).
 	 */
-	public function __construct( $id, $name ) {
-		$this->id   = $id;
-		$this->name = $name;
+	public function __construct( $id, $name, $settings ) {
+		$this->id                = $id;
+		$this->name              = $name;
+		$this->included_settings = $settings;
 
 		add_action( 'woocommerce_system_status_report', array( $this, 'add_status_page_box' ) );
 		add_action( 'woocommerce_cleanup_logs', array( $this, 'remove_old_entries' ) );
@@ -103,7 +76,7 @@ class SystemReport {
 		$output   = array();
 		$settings = get_option( 'woocommerce_' . $this->id . '_settings', array() );
 		foreach ( $settings as $setting_key => $value ) {
-			$form_field = $form_fields[ $setting_key ]  ?? array();
+			$form_field = $form_fields[ $setting_key ] ?? array();
 
 			// Check if the form field is valid for the system report output.
 			if ( ! $this->is_form_field_valid( $form_field, $setting_key ) ) {
@@ -117,6 +90,7 @@ class SystemReport {
 			$output[ $setting_key ] = array(
 				'title' => rtrim( $form_field['title'], ':' ),
 				'value' => $value,
+				'type'  => $form_field['type'],
 			);
 
 		}
@@ -127,7 +101,7 @@ class SystemReport {
 	/**
 	 * Check if a form field is valid for the system report output.
 	 *
-	 * @param array $form_field The form field to check.
+	 * @param array  $form_field The form field to check.
 	 * @param string $setting_key The setting key to check against.
 	 *
 	 * @return bool True if the form field is valid, false otherwise.
@@ -140,10 +114,6 @@ class SystemReport {
 
 		if ( ! empty( $this->included_settings ) ) { // If there are included settings, check if the form field is valid in the included settings. And skip any other checks.
 			return $this->is_form_field_included( $form_field, $setting_key );
-		}
-
-		if ( ! in_array( $form_field['type'], $this->tracked_field_types, true ) ) { // Skip any form field types that are not in the list of tracked field types.
-			return false;
 		}
 
 		if ( ! isset( $form_field['title'] ) ) { // Skip any form fields that do not have a title.
@@ -160,7 +130,7 @@ class SystemReport {
 	/**
 	 * Check if the form field is valid in the included settings.
 	 *
-	 * @param array $form_field The form field to check.
+	 * @param array  $form_field The form field to check.
 	 * @param string $setting_key The setting key to check against.
 	 *
 	 * @return bool True if the form field is valid, false otherwise.
@@ -169,7 +139,13 @@ class SystemReport {
 		// Loop the included settings and check if the form field is valid.
 		foreach ( $this->included_settings as $included_setting ) {
 			if ( is_array( $included_setting ) ) {
-				return $included_setting['value'] === $form_field[ $included_setting['key'] ];
+				if ( isset( $included_setting['type'] ) && $included_setting['type'] === $form_field['type'] ) {
+					return true;
+				}
+
+				if ( isset( $included_setting['id'] ) && $included_setting['id'] === $form_field['id'] ) {
+					return true;
+				}
 			}
 
 			return $included_setting === $setting_key;
@@ -182,7 +158,7 @@ class SystemReport {
 	/**
 	 * Check if the setting should be skipped or not.
 	 *
-	 * @param array $form_field The form field to check.
+	 * @param array  $form_field The form field to check.
 	 * @param string $setting_key The setting key to check against.
 	 *
 	 * @return bool True if the setting should be skipped, false otherwise.
@@ -197,6 +173,8 @@ class SystemReport {
 			// Skip the setting if the setting key matches the skipped setting key.
 			return $skipped_setting !== $setting_key;
 		}
+
+		return false;
 	}
 
 	/**
@@ -245,8 +223,8 @@ class SystemReport {
 	/**
 	 * Add a log entry to the system report.
 	 *
-	 * @param array|object|\WP_Error     $response The API request that you want to report about.
-	 * @param mixed $extra    Any extra information you want to include in the report.
+	 * @param array|object|\WP_Error $response The API request that you want to report about.
+	 * @param mixed                  $extra    Any extra information you want to include in the report.
 	 *
 	 * @return array|object|\WP_Error
 	 */
