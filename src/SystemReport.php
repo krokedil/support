@@ -36,19 +36,11 @@ class SystemReport {
 	private $included_settings = array();
 
 	/**
-	 * List of skipped settings.
-	 *
-	 * @var array
-	 */
-	private $skipped_settings = array(
-		'title' => 'enable/disable',
-	);
-
-	/**
 	 * SystemReport constructor.
 	 *
 	 * @param string $id The plugin ID.
 	 * @param string $name The plugin name (or title).
+	 * @param array  $settings The options for determining what to include in the system report.
 	 */
 	public function __construct( $id, $name, $settings ) {
 		$this->id                = $id;
@@ -83,6 +75,8 @@ class SystemReport {
 				continue;
 			}
 
+			$form_field = $this->process_modifiers( $form_field );
+
 			if ( empty( $value ) ) {
 				$value = $form_field['default'] ?? $value;
 			}
@@ -112,19 +106,7 @@ class SystemReport {
 			return false;
 		}
 
-		if ( ! empty( $this->included_settings ) ) { // If there are included settings, check if the form field is valid in the included settings. And skip any other checks.
-			return $this->is_form_field_included( $form_field, $setting_key );
-		}
-
-		if ( ! isset( $form_field['title'] ) ) { // Skip any form fields that do not have a title.
-			return false;
-		}
-
-		if ( in_array( strtolower( $form_field['title'] ), $this->skipped_settings, true ) ) { // Skip any form fields that have a title that is in the skipped array.
-			return false;
-		}
-
-		return $this->skip_setting( $form_field, $setting_key ); // Check if the setting should be skipped or not.
+		return $this->is_form_field_included( $form_field, $setting_key );
 	}
 
 	/**
@@ -136,19 +118,11 @@ class SystemReport {
 	 * @return bool True if the form field is valid, false otherwise.
 	 */
 	private function is_form_field_included( $form_field, $setting_key ) {
-		// Loop the included settings and check if the form field is valid.
-		foreach ( $this->included_settings as $included_setting ) {
-			if ( is_array( $included_setting ) ) {
-				if ( isset( $included_setting['type'] ) && $included_setting['type'] === $form_field['type'] ) {
-					return true;
-				}
+		$form_field['id'] = $setting_key;
 
-				if ( isset( $included_setting['id'] ) && $included_setting['id'] === $form_field['id'] ) {
-					return true;
-				}
-			}
-
-			return $included_setting === $setting_key;
+		$setting = $this->is_match( $form_field );
+		if ( $setting ) {
+			return ! $this->maybe_exclude( $form_field, $setting );
 		}
 
 		// Default to false if no match is found.
@@ -156,55 +130,77 @@ class SystemReport {
 	}
 
 	/**
-	 * Check if the setting should be skipped or not.
+	 * Check if the setting should be skipped or not based on the existence of the 'exclude' property, and its values.
 	 *
-	 * @param array  $form_field The form field to check.
-	 * @param string $setting_key The setting key to check against.
+	 * @param array $form_field The form field to check.
+	 * @param array $setting The options setting.
 	 *
 	 * @return bool True if the setting should be skipped, false otherwise.
 	 */
-	private function skip_setting( $form_field, $setting_key ) {
-		foreach ( $this->skipped_settings as $skipped_setting ) {
-			// Skip based on specific form field key, and value.
-			if ( is_array( $skipped_setting ) ) {
-				return $skipped_setting['value'] !== $form_field[ $skipped_setting['key'] ];
+	private function maybe_exclude( $form_field, $setting ) {
+		if ( ! isset( $setting['exclude'] ) || empty( $setting['exclude'] ) ) {
+			return false;
+		}
+
+		foreach ( $setting['exclude'] as $key => $value ) {
+			// These are special keywords: empty and isset.
+			// If the form field is empty, the field will be excluded.
+			if ( 'empty' === $key && ( empty( $form_field[ $value ] ) || ! isset( $form_field[ $value ] ) ) ) {
+				return true;
 			}
 
-			// Skip the setting if the setting key matches the skipped setting key.
-			return $skipped_setting !== $setting_key;
+			// If the form field is non-empty, the field will be excluded.
+			if ( 'isset' === $key && isset( $form_field[ $value ] ) ) {
+				return true;
+			}
+
+			// The remaining keys are treated as properties in the form field, and whose value to match against.
+			if ( isset( $form_field[ $key ] ) && $form_field[ $key ] === $value ) {
+				return true;
+			}
 		}
 
 		return false;
 	}
 
 	/**
-	 * Exclude specific settings from the system report.
+	 * Process the form field for any modifiers, and modifies it accordingly.
 	 *
-	 * - if you pass an array, the 'key' is the form field key, and the 'value' is the value of that form field who you want to match against.
-	 * - if you pass a string, it will match the setting option name.
-	 * - you may mix both strings and arrays.
+	 * @param array $form_field The form field to process.
 	 *
-	 * @example `'key' => 'title', 'value' => 'enable/disable'` will exclude all form fields whose title is 'enable/disable'.
-	 *
-	 * @param array $settings The settings to exclude.
+	 * @return array The processed form field.
 	 */
-	public function exclude( $settings ) {
-		$this->excluded = $settings;
+	private function process_modifiers( $form_field ) {
+		$setting = $this->is_match( $form_field );
+		if ( ! empty( $setting ) ) {
+			if ( isset( $setting['is_section'] ) ) {
+				$form_field['type'] = 'section';
+			}
+		}
+		return $form_field;
 	}
 
 	/**
-	 * Include ONLY specific settings in the system report.
+	 * Check if the form field matches any of the included settings.
 	 *
-	 * - if you pass an array, the 'key' is the form field key, and the 'value' is the value of that form field who you want to match against.
-	 * - if you pass a string, it will match the setting option name.
-	 * - you may mix both strings and arrays.
+	 * @param array $form_field The form field to check.
 	 *
-	 * @example `'key' => 'type', 'value' => 'checkbox'` mean include all checkbox settings.
-	 *
-	 * @param array $settings The settings to include.
+	 * @return array|false The setting that matched, false otherwise.
 	 */
-	public function include( $settings ) {
-		$this->included_settings = $settings;
+	private function is_match( $form_field ) {
+		foreach ( $this->included_settings as $setting ) {
+			if ( isset( $setting['type'] ) && $setting['type'] === $form_field['type'] ) {
+				return $setting;
+			}
+			if ( isset( $setting['id'] ) && $setting['id'] === $form_field['id'] ) {
+				return $setting;
+			}
+			if ( isset( $setting['class'] ) && $setting['class'] === $form_field['class'] ) {
+				return $setting;
+			}
+		}
+
+		return false;
 	}
 
 	/**

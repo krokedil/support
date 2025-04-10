@@ -114,3 +114,43 @@ public function check_for_api_error( $response ) {
 ```
 
 You can call the `request()` anywhere you want to report an error. The method will return the original response if it is an array, or a `WP_Error` object if the response is an error.
+
+# System report
+
+The `SystemReport` class allows you to include the plugin settings of your choice in the WooCommerce system report.
+
+The new instance must include the plugin's ID (or gateway ID), the plugin name, and the settings you want to include in the system report. The plugin name will be used as the title of the system report.
+
+```php
+new SystemReport( 'krokedil_payments', 'Krokedil Payments for WooCommerce', $included_settings );
+```
+
+- the plugin (or gateway) id.
+- the plugin name. This name will be used as the title of the system report.
+- the settings you want to include in the system report. The settings must be an array of arrays, where each array contains the following keys:
+    - type: the type of the setting (e.g. checkbox, select, etc.)
+    - id: the ID of the setting (optional)
+    - class: the class of the setting (optional)
+    - exclude: an array of keys to exclude from the setting (optional)
+    - is_section: whether the setting is a section or not (optional)
+
+```php
+$included_settings = array(
+	array(
+		'type'       => 'section_start',        // The 'type' to match against. Custom types such are also supported.
+		'is_section' => true,                   // Marks this setting as a section. It will be highlighted as table heading in the system report.
+	),
+	array(
+		'type'    => 'checkbox',
+		'exclude' => array(
+			'empty' => 'title',                // If checkbox, and the title is empty or not set, the setting will be excluded.
+            // 'isset' => 'title',             // If checkbox, the title is set, the setting will be excluded.
+            // 'title' => 'enabled/disabled'   // If checkbox, and a title matches this exact string, the setting will be excluded.
+		),
+	),
+	array( 'type' => 'multiselect' ),
+	array( 'type' => 'select' ),
+	array( 'id' => 'enabled' ),
+	array( 'class' => 'wc-enhanced-select' ),
+);
+```

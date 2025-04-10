@@ -60,7 +60,7 @@ $settings_title = "$name plugin settings";
 					<?php else : ?>
 						<td><?php echo esc_html( $setting['title'] ); ?></td>
 						<td class="help"></td>
-						<td><?php echo esc_html( $setting['value'] ); ?></td>
+						<td><?php echo esc_html( 'password' === $setting['type'] ? '[REDACTED]' : $setting['value'] ); ?></td>
 					<?php endif; ?>
 				</tr>
 			<?php endforeach; ?>
