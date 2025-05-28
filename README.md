@@ -1,16 +1,14 @@
-# What is this?
+# Krokedil/Support
 
 This library has two classes:
 - `Logger`: The class that provides the logging functionality.
 - `SystemReport`: The class that provides the system report functionality.
 
-# Initializing the package
+## Requirements
 
-Overview:
-1. Include the package in your composer file.
-2. Initialize the Support class in your plugin.
+- PHP >=7.4
 
-## The composer file
+## Installation
 
 If the plugin makes use of scoping, add this to your `composer-dependencies.json` file instead of the `composer.json` file.
 
@@ -28,7 +26,7 @@ If the plugin makes use of scoping, add this to your `composer-dependencies.json
 
 Thereafter, run `composer update` to install the package.
 
-# Logger
+## Logger
 
 In your main plugin file, you can add the following code to initialize the logger:
 
@@ -58,9 +56,9 @@ class Plugin {
     }
 }
 ```
-## The `log()` method and its variants
+### The `log()` method and its variants
 
-### Method signature
+#### Method signature
 You can either use the generic `log()` method or the more specific methods like `info()`, `error()`, etc.
 ```php
 /**
@@ -88,12 +86,12 @@ public function log( $message, $level = WC_Log_Levels::INFO, ...$args );
  */
 public function info( $message, ...$args );
 ```
-### Example
+#### Example
 ```php
 Plugin()->logger()->info( 'This is an info message', array( 'key' => 'value' ) );
 ```
 
-## Plugin settings
+### Plugin settings
 
 You can extend your plugin settings with the following by calling `add_settings_fields($form_fields)` where you generate your plugin settings form. 
 
@@ -120,14 +118,14 @@ $settings = array(
 );
 ```
 
-### Example
+#### Example
 
 ```php
 return Plugin()->logger()->add_settings_fields( $plugin_settings );
 ```
 
 
-# SystemReport
+## SystemReport
 In your main plugin file, you can add the following code to initialize the system report:
 
 ```php
@@ -186,9 +184,9 @@ The `exclude` array must be used together with a type, id or class.
 - `empty`: if the setting is empty, it will be excluded.
 - `title`: if the setting title matches this exact string, it will be excluded.
 
-## The `request()` method
+### The `request()` method
 
-### Method signature
+#### Method signature
 ```php
 /**
  * Add a log entry to the system report.
@@ -203,7 +201,7 @@ public function request( $response, $extra = null );
 
 You can call the `request()` anywhere you want to report an error to the system report. The method will return the first argument that you're reporting about. The `$extra` argument is optional and can be used to include any additional information you want to report.
 
-### Example
+#### Example
 ```php
 /**
  * Process the API request.
