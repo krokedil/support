@@ -1,6 +1,7 @@
 # Krokedil/Support
+The support library allows you to extend your plugin with logging that can be optionally toggled through your plugin settings, generate an entry in the system report from your plugin settings, and report issues to the system report.
 
-This library has two classes:
+The library has two classes:
 - `Logger`: The class that provides the logging functionality.
 - `SystemReport`: The class that provides the system report functionality.
 
