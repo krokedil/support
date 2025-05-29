@@ -18,7 +18,7 @@ $settings_title = "$name plugin settings";
 			<td><strong><?php esc_html_e( 'Timestamp', 'krokedil-support' ); ?></strong></td>
 			<td class="help"></td>
 			<td><strong><?php esc_html_e( 'Code', 'krokedil-support' ); ?></strong></td>
-			<td><strong><?php esc_html_e( 'Message', 'krokedil-support' ); ?></strong></td>
+			<td colspan="6"><strong><?php esc_html_e( 'Message', 'krokedil-support' ); ?></strong></td>
 		</tr>
 	</thead>
 	<tbody>
