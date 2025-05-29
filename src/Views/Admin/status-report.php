@@ -3,7 +3,7 @@
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
-$report         = json_decode( get_option( 'krokedil_support_' . $id, '[]' ), true );
+$report         = get_option( 'krokedil_support_' . $id );
 $settings_title = "$name plugin settings";
 
 ?>
@@ -30,7 +30,7 @@ $settings_title = "$name plugin settings";
 					<td><?php echo esc_html( $log['timestamp'] ); ?></td>
 					<td class="help"></td>
 					<td><?php echo esc_html( $log['response']['code'] ); ?></td>
-					<td><?php echo esc_html( trim( wp_json_encode( $log['response']['message'] ), '"' ) ); ?></td>
+					<td><?php echo esc_html( trim( $log['response']['message'], '"' ) ); ?></td>
 					<td><?php echo esc_html( trim( empty( $log['response']['extra'] ) ? '' : wp_json_encode( $log['response']['extra'] ), '"' ) ); ?></td>
 				</tr>
 			<?php endforeach; ?>
