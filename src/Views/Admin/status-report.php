@@ -19,7 +19,6 @@ $settings_title = "$name plugin settings";
 			<td class="help"></td>
 			<td><strong><?php esc_html_e( 'Code', 'krokedil-support' ); ?></strong></td>
 			<td><strong><?php esc_html_e( 'Message', 'krokedil-support' ); ?></strong></td>
-			<td><strong><?php esc_html_e( 'Details', 'krokedil-support' ); ?></strong></td>
 		</tr>
 	</thead>
 	<tbody>
