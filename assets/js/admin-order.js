@@ -46,12 +46,12 @@ jQuery(function ($) {
                             console.error(e);
                         }
                     } else {
-                        console.error(response.data);
+                        console.error(response.data || response);
                     }
 
 				},
 				error: function ( response ) {
-					console.error(response.data);
+					console.error(response.data || response);
 				},
 			} )
         }
