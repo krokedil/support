@@ -32,14 +32,17 @@ class Assets {
 	 * @return void
 	 */
 	public static function enqueue_admin_order_scripts( $order ) {
+		$action = 'krokedil_support_export_order';
+
 		$params = array(
 			'order_id' => $order->get_id(),
-			'ajax'    => array(
+			'ajax'     => array(
 				'export_order' => array(
-					'url'    => \WC_AJAX::get_endpoint( 'krokedil_support_export_order' ),
-					'nonce'  => wp_create_nonce( 'krokedil_support_export_order' ),
-				)
-			)
+					'url'    => admin_url( 'admin-ajax.php' ),
+					'action' => $action,
+					'nonce'  => wp_create_nonce( $action ),
+				),
+			),
 		);
 
 		wp_register_script( 'krokedil-support-admin-order', self::get_assets_url() . 'js/admin-order.js', array( 'jquery' ), '1.0.0', true );

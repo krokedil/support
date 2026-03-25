@@ -43,6 +43,7 @@ class OrderSupport {
 	 * @return void
 	 */
 	public function init() {
+		add_action( 'wp_ajax_krokedil_support_export_order', array( $this, 'krokedil_support_export_order' ) );
 		add_action( 'wc_ajax_krokedil_support_export_order', array( $this, 'krokedil_support_export_order' ) );
 	}
 
@@ -113,7 +114,7 @@ class OrderSupport {
 		 * ]
 		 */
 		$result = array(
-			'orders' => array(),
+			'orders'        => array(),
 			'system_report' => SystemReport::get_report(),
 		);
 
@@ -121,9 +122,9 @@ class OrderSupport {
 			$order_id = $order->get_id();
 
 			$result['orders'][ $order_id ] = array(
-				'wc_order' => $order_data[ $order_id ] ?? array(),
+				'wc_order'          => $order_data[ $order_id ] ?? array(),
 				'integration_order' => $this->get_integration_order_data( $order ),
-				'logs' => $log_data[ $order_id ] ?? array(),
+				'logs'              => $log_data[ $order_id ] ?? array(),
 			);
 		}
 
