@@ -239,7 +239,7 @@ class SystemReport {
 			),
 		);
 
-		update_option( 'krokedil_support_' . $this->id, wp_json_encode( $logs ) );
+		update_option( 'krokedil_support_' . $this->id, wp_json_encode( $logs ), false );
 		return $response;
 	}
 
@@ -257,6 +257,6 @@ class SystemReport {
 				unset( $reports[ $key ] );
 			}
 		}
-		update_option( 'krokedil_support_' . $this->id, wp_json_encode( $reports ) );
+		update_option( 'krokedil_support_' . $this->id, wp_json_encode( $reports ), false );
 	}
 }
