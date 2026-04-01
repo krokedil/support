@@ -2,6 +2,8 @@
 
 namespace Krokedil\Support;
 
+use Krokedil\Support\AJAX;
+
 /**
  * Class to generate support information for WooCommerce orders and order information so it can be sent to Krokedil.
  *
@@ -34,17 +36,7 @@ class OrderSupport {
 		$this->log_context  = $log_context;
 		$this->log_metadata = $log_metadata;
 
-		$this->init();
-	}
-
-	/**
-	 * Initialize the class.
-	 *
-	 * @return void
-	 */
-	public function init() {
-		add_action( 'wp_ajax_krokedil_support_export_order', array( $this, 'krokedil_support_export_order' ) );
-		add_action( 'wc_ajax_krokedil_support_export_order', array( $this, 'krokedil_support_export_order' ) );
+		AJAX::init();
 	}
 
 	/**
@@ -181,26 +173,6 @@ class OrderSupport {
 		}
 
 		return $order_data;
-	}
-
-	/**
-	 * Export an order for support.
-	 *
-	 * @return void
-	 */
-	public function krokedil_support_export_order() {
-		check_ajax_referer( 'krokedil_support_export_order', 'nonce' );
-
-		$order_id = filter_input( INPUT_POST, 'order_id', FILTER_SANITIZE_NUMBER_INT );
-		if ( ! current_user_can( 'edit_shop_orders' ) || ! $order_id ) {
-			wp_send_json_error( __( 'Invalid order ID.', 'krokedil-support' ) );
-		}
-
-		$order = wc_get_order( $order_id );
-
-		$exported_order = $this->export_orders( $order );
-
-		wp_send_json_success( $exported_order );
 	}
 
 	/**
