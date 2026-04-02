@@ -17,15 +17,16 @@ jQuery(function ($) {
         handleOrderAction: function (e) {
             e.preventDefault();
             const orderId = krokedil_support_admin_order_params.order_id;
-            const { url, nonce } = krokedil_support_admin_order_params.ajax.export_order;
+            const { url, nonce, action } = krokedil_support_admin_order_params.ajax.export_order;
 
             $.ajax( {
 				type: "POST",
 				data: {
+                    action: action,
 					nonce: nonce,
 					order_id: orderId,
 				},
-                dataType: "json",
+				dataType: "JSON",
 				url: url,
 				success: function ( response ) {
                     if (response.success) {
@@ -51,7 +52,7 @@ jQuery(function ($) {
 
 				},
                 error: function ( response ) {
-                    console.error(response.responseText || response.data || response);
+                    console.error(response.data || response);
                 },
 			} )
         }

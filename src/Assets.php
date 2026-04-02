@@ -38,8 +38,10 @@ class Assets {
 			'order_id' => $order->get_id(),
 			'ajax'     => array(
 				'export_order' => array(
-					'url'   => \WC_AJAX::get_endpoint( $action ),
-					'nonce' => wp_create_nonce( $action ),
+					'url'    => \WC_AJAX::get_endpoint( $action ),
+					'action' => $action,
+					'nonce'  => wp_create_nonce( $action ),
+					'method' => 'POST',
 				),
 			),
 		);
