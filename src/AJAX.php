@@ -31,12 +31,9 @@ class AJAX {
 			'krokedil_support_export_order',
 		);
 
-		foreach ( $ajax_events as $ajax_event => $nopriv ) {
-			add_action( 'wp_ajax_woocommerce_' . $ajax_event, array( __CLASS__, $ajax_event ) );
-			if ( $nopriv ) {
-				add_action( 'wp_ajax_nopriv_woocommerce_' . $ajax_event, array( __CLASS__, $ajax_event ) );
-				add_action( 'wc_ajax_' . $ajax_event, array( __CLASS__, $ajax_event ) );
-			}
+		foreach ( $ajax_events as $ajax_event ) {
+			add_action( 'wc_ajax_' . $ajax_event, array( $this, $ajax_event ) );
+			add_action( 'wp_ajax_woocommerce_' . $ajax_event, array( $this, $ajax_event ) );
 		}
 	}
 
