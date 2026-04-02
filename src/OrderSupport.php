@@ -25,6 +25,13 @@ class OrderSupport {
 	private $log_metadata = null;
 
 	/**
+	 * Reference to the AJAX class.
+	 *
+	 * @var AJAX
+	 */
+	private $ajax;
+
+	/**
 	 * Class constructor.
 	 *
 	 * @param string $log_context The log file slug.
@@ -35,8 +42,7 @@ class OrderSupport {
 	public function __construct( $log_context = null, $log_metadata = null ) {
 		$this->log_context  = $log_context;
 		$this->log_metadata = $log_metadata;
-
-		AJAX::init();
+		$this->ajax         = new AJAX();
 	}
 
 	/**
@@ -184,5 +190,14 @@ class OrderSupport {
 	 */
 	public function get_integration_order_data( $orders ) {
 		return array();
+	}
+
+	/**
+	 * Get the AJAX class.
+	 *
+	 * @return AJAX
+	 */
+	public function ajax() {
+		return $this->ajax;
 	}
 }
