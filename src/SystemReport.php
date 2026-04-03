@@ -98,7 +98,7 @@ class SystemReport {
 	 * @return string
 	 */
 	public static function get_report() {
-		$legacy_wc     = version_compare( \WC_VERSION, '9.0', '<=' );
+		$legacy_wc     = version_compare( WC_VERSION, '9.0', '<=' );
 		$system_report = '';
 		if ( $legacy_wc ) {
 			$system_report = WC()->api->get_endpoint_data( '/wc/v3/system_status' );

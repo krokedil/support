@@ -42,7 +42,15 @@ class OrderSupport {
 	public function __construct( $log_context = null, $log_metadata = null ) {
 		$this->log_context  = $log_context;
 		$this->log_metadata = $log_metadata;
-		$this->ajax         = new AJAX();
+	}
+
+	/**
+	 * Initialize the AJAX class.
+	 *
+	 * @return void
+	 */
+	public function init_ajax() {
+		$this->ajax = new AJAX();
 	}
 
 	/**

@@ -52,7 +52,7 @@ class AJAX {
 
 		$order = wc_get_order( $order_id );
 
-		$exported_order = $this->export_orders( $order );
+		$exported_order = ( new OrderSupport() )->export_orders( $order );
 
 		wp_send_json_success( $exported_order );
 	}
