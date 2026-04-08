@@ -22,10 +22,7 @@
     "autoload": {
         "psr-4": {
             "Krokedil\\Support\\": "src/"
-        },
-        "files": [
-            "src/bootstrap.php"
-        ]
+        }
     },
     "config": {
         "platform": {
