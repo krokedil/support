@@ -6,7 +6,7 @@ The order support functionality will add a rest api endpoint to the WordPress st
 Optionally two extra parameters can be sent to also include log entries for the order from any requests that are logged in our loggers based on the two parameters sent.
 These parameters are `log_context` and `log_metadata`. The `log_context` parameter should be a string that matches the slug of the log files that the specific plugin uses to log requests. For example for Avarda Checkout, this would be `avarda_checkout`.
 
-The `log_metadata` parameter should be a string that matches the metadata key from the order in WooCommerce that we want to search for in the logs to get the rows that are relevant for this order. One example for this would be the transaction or payment id for different plugins, for Avarda Checkout this would be `_wc_avarda_purchase_id`. This will then extract any log rows that have the value stored in the order for the key and ad them to the response sent back.
+The `log_metadata` parameter should be a string that matches the metadata key from the order in WooCommerce that we want to search for in the logs to get the rows that are relevant for this order. One example for this would be the transaction or payment id for different plugins, for Avarda Checkout this would be `_wc_avarda_purchase_id`. This will then extract any log rows that have the value stored in the order for the key and add them to the response sent back.
 
 Due to the amount of data that could be required to read when including logs like this, the request itself might take some time to finish. So a decent timeout for the request might be a good idea to have.
 
