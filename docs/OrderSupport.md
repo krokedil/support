@@ -15,7 +15,7 @@ We are also using the namespace wc-krokedil for the endpoint, that way the endpo
 #### Without API requests.
 The same code that generates the API response can also be used by plugins to automatically generate the text output. This can be used for example if we want to implement this with the support tab or beacon that we have in our settings page package.
 
-To do this, simply create a instance of the `OrderSupport` class with the same properties as the API request for `log_context` and `log_metadata`. Then call the `export_orders` with a list of WooCommerce orders to generate the output for.
+To do this, simply create an instance of the `OrderSupport` class with the same properties as the API request for `log_context` and `log_metadata`. Then call the `export_orders` with a list of WooCommerce orders to generate the output for.
 
 ### Example usage.
 ```php
