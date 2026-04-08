@@ -95,7 +95,7 @@ class SystemReport {
 	/**
 	 * Get the WooCommerce system report as an array.
 	 *
-	 * @return string
+	 * @return array|\WP_Error The system report data as an array, or a WP_Error if the report cannot be retrieved.
 	 */
 	public static function get_report() {
 		$legacy_wc     = version_compare( WC_VERSION, '9.0', '<=' );

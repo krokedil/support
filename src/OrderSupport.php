@@ -76,7 +76,6 @@ class OrderSupport {
 	 * Export the order.
 	 *
 	 * @param \WC_Order[]|\WC_Order $orders The order IDs to export.
-	 * @param array                 $integration_orders The integration order data.
 	 *
 	 * @return array
 	 */
@@ -188,7 +187,7 @@ class OrderSupport {
 	 *
 	 * @return array
 	 */
-	public function get_integration_order_data( $orders ) {
+	public function get_integration_order_data( $order ) {
 		return array();
 	}
 

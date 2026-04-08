@@ -77,7 +77,7 @@ class LogParser {
 		$log_file_paths = array_filter(
 			$log_file_paths,
 			function ( $log_file ) use ( $log_file_slug ) {
-				return false !== strpos( $log_file, $log_file_slug );
+				return false !== strpos( $log_file, $log_file_slug ?? 'krokedil-support' );
 			}
 		);
 

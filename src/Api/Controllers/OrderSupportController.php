@@ -71,6 +71,10 @@ class OrderSupportController extends BaseController {
 		// Get the order object.
 		$order = wc_get_order( $order_id );
 
+		if ( empty( $order ) ) {
+			return new \WP_REST_Response( array( 'error' => __( 'Order not found.', 'krokedil-support' ) ), 404 );
+		}
+
 		$data = $order_export->export_orders( $order );
 		// If we only have one entry in the order export, return that. Otherwise, return the whole array.
 		$response = count( $data ) === 1 ? reset( $data ) : $data;

@@ -1,7 +1,7 @@
 jQuery(function ($) {
     	"use strict"
 
-	if ( krokedil_support_admin_order_params === undefined ) {
+	if ( 'undefined' === typeof krokedil_support_admin_order_params ) {
 		return false
 	}
 
