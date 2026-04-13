@@ -1,6 +1,9 @@
 ### Order Support documentation.
 
 #### Using the API request.
+
+Note: This is currently not enabled.
+
 The order support functionality will add a rest api endpoint to the WordPress store with the endpoint `/wp-json/wc-krokedil/v1/support/order/{order_id}`. This endpoint will return the order details for the order with the id `{order_id}`.
 
 Optionally two extra parameters can be sent to also include log entries for the order from any requests that are logged in our loggers based on the two parameters sent.
