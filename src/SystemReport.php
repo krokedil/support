@@ -189,13 +189,13 @@ class SystemReport {
 	 */
 	private function is_match( $form_field ) {
 		foreach ( $this->included_settings as $setting ) {
-			if ( isset( $setting['type'] ) && $setting['type'] === $form_field['type'] ) {
+			if ( isset( $setting['type'], $form_field['type'] ) && $setting['type'] === $form_field['type'] ) {
 				return $setting;
 			}
-			if ( isset( $setting['id'] ) && $setting['id'] === $form_field['id'] ) {
+			if ( isset( $setting['id'], $form_field['id'] ) && $setting['id'] === $form_field['id'] ) {
 				return $setting;
 			}
-			if ( isset( $setting['class'] ) && $setting['class'] === $form_field['class'] ) {
+			if ( isset( $setting['class'], $form_field['class'] ) && $setting['class'] === $form_field['class'] ) {
 				return $setting;
 			}
 		}
