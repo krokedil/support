@@ -7,8 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-
 ------------------
+## [1.1.0] - 2026-10-16
+
+### Added
+
+* Added an "Export order for support" button for the admin order page. It downloads a JSON file with the order data, order notes, the WooCommerce system status report and any log entries that match the order. Plugins add the button with `OrderSupport::add_export_order_button()`.
+
+### Fixed
+
+* Viewing the WooCommerce system status report no longer writes a PHP deprecation notice (or an undefined array key warning) to the error log when a request log entry has no error message.
+
 ## [1.0.4] - 2026-03-30
 
 ### Fixed
