@@ -42,7 +42,7 @@ class OrderSupport {
 	public function __construct( $log_context = null, $log_metadata = null ) {
 		$this->log_context  = $log_context;
 		$this->log_metadata = $log_metadata;
-		$this->ajax         = new AJAX();
+		$this->ajax         = new AJAX( $this );
 	}
 
 	/**
@@ -55,7 +55,7 @@ class OrderSupport {
 	 */
 	public function add_export_order_button( $order, $print = true ) {
 		// Enqueue the scripts for the admin order page.
-		Assets::enqueue_admin_order_scripts( $order );
+		Assets::enqueue_admin_order_scripts( $order, $this->get_ajax_action() );
 
 		if ( ! $print ) {
 			ob_start();
@@ -189,6 +189,21 @@ class OrderSupport {
 	 */
 	public function get_integration_order_data( $order ) {
 		return array();
+	}
+
+	/**
+	 * Get the AJAX action name for exporting an order, unique to the log context.
+	 *
+	 * @return string
+	 */
+	public function get_ajax_action() {
+		$action = 'krokedil_support_export_order';
+
+		if ( ! empty( $this->log_context ) ) {
+			$action .= '_' . sanitize_key( $this->log_context );
+		}
+
+		return $action;
 	}
 
 	/**

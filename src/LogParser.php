@@ -20,6 +20,10 @@ class LogParser {
 	 * @return array
 	 */
 	public static function get_log_data( $orders, $log_context, $log_metadata ) {
+		if ( empty( $log_metadata ) ) {
+			return array();
+		}
+
 		// For each order, get the metadata value to check for.
 		$search_values = self::get_search_values( $orders, $log_metadata );
 
