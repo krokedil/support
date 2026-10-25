@@ -28,11 +28,11 @@ class Assets {
 	 * Enqueue scripts and styles for the admin order page.
 	 *
 	 * @param \WC_Order $order The order object.
+	 * @param string    $action The AJAX action name for exporting the order.
 	 *
 	 * @return void
 	 */
-	public static function enqueue_admin_order_scripts( $order ) {
-		$action = 'krokedil_support_export_order';
+	public static function enqueue_admin_order_scripts( $order, $action = 'krokedil_support_export_order' ) {
 
 		$params = array(
 			'order_id' => $order->get_id(),
