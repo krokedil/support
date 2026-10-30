@@ -112,8 +112,8 @@ class LogParser {
 			// Search for each of the metadata values from the orders, and save them with the order id as the key to the log line.
 			foreach ( $search_values as $order_id => $search_value ) {
 				if ( false !== strpos( $line, $search_value ) ) {
-					// Strip any newlines from the line and strip slashes and add it to the log lines array.
-					$log_lines[ $order_id ][] = stripslashes( str_replace( array( "\n", "\r" ), '', $line ) );
+					// Strip any newlines from the line and add it to the log lines array. Slashes are kept so the JSON in the line still decodes.
+					$log_lines[ $order_id ][] = str_replace( array( "\n", "\r" ), '', $line );
 					continue;
 				}
 			}
