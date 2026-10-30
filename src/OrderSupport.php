@@ -11,6 +11,68 @@ use Krokedil\Support\AJAX;
  */
 class OrderSupport {
 	/**
+	 * Placeholder for a masked value that was present.
+	 */
+	const REDACTED = '[REDACTED]';
+
+	/**
+	 * Placeholder for a masked value that was empty.
+	 */
+	const MISSING = '[MISSING]';
+
+	/**
+	 * The address fields kept readable, since none of them identify a person on their own.
+	 */
+	const ADDRESS_KEPT = array( 'city', 'state', 'postcode', 'country' );
+
+	/**
+	 * The top level order fields that identify the customer or grant access to the order.
+	 */
+	const ORDER_FIELDS_MASKED = array( 'customer_ip_address', 'customer_user_agent', 'order_key', 'customer_note' );
+
+	/**
+	 * Key fragments whose values are masked in the order meta and the log lines, matched case insensitively as substrings.
+	 */
+	const KEYS_MASKED = array(
+		'email',
+		'phone',
+		'first_name',
+		'last_name',
+		'given_name',
+		'family_name',
+		'company',
+		'organization_name',
+		'address_1',
+		'address_2',
+		'street_address',
+		'address_index',
+		'ip_address',
+		'user_agent',
+		'date_of_birth',
+		'personal_number',
+		'national_identification',
+		'pno',
+		'order_key',
+		'token',
+		'secret',
+		'password',
+		'authorization',
+		'redirect_url',
+		'distribution_url',
+		'qr_code_url',
+		'html_snippet',
+		'vat_id',
+		'organization_registration_id',
+		'tracking_number',
+		'tracking_uri',
+	);
+
+	/**
+	 * Key fragments masked in the order meta only, where a session is stored as one opaque blob.
+	 */
+	const META_KEYS_MASKED = array( 'session' );
+
+	/**
 	 * The slug for the log files to search in.
 	 *
 	 * @var string|null
@@ -121,7 +183,7 @@ class OrderSupport {
 			$result['orders'][ $order_id ] = array(
 				'wc_order'          => $order_data[ $order_id ] ?? array(),
 				'integration_order' => $this->get_integration_order_data( $order ),
-				'logs'              => $log_data[ $order_id ] ?? array(),
+				'logs'              => $this->mask_log_lines( $log_data[ $order_id ] ?? array() ),
 			);
 		}
 
@@ -174,10 +236,171 @@ class OrderSupport {
 				)
 			);
 
-			$order_data[ $order->get_id() ] = $data;
+			$order_data[ $order->get_id() ] = $this->is_masking_enabled() ? $this->mask_order_data( $data ) : $data;
 		}
 
 		return $order_data;
+	}
+
+	/**
+	 * Whether export masking is enabled via the shared krokedil/wp-api log masking filter.
+	 *
+	 * @return bool
+	 */
+	protected function is_masking_enabled() {
+		try {
+			/** This filter is documented in krokedil/wp-api src/Masking.php */
+			return false !== apply_filters( 'krokedil_wp_api_mask_log_data', true, (string) $this->log_context );
+		} catch ( \Throwable $e ) {
+			return true;
+		}
+	}
+
+	/**
+	 * Mask the customer's personal data and anything granting access to the order.
+	 *
+	 * @param array $data The order data.
+	 *
+	 * @return array
+	 */
+	protected function mask_order_data( $data ) {
+		foreach ( array( 'billing', 'shipping' ) as $address_type ) {
+			foreach ( $data[ $address_type ] ?? array() as $field => $value ) {
+				if ( ! in_array( $field, self::ADDRESS_KEPT, true ) ) {
+					$data[ $address_type ][ $field ] = self::placeholder( $value );
+				}
+			}
+		}
+
+		foreach ( self::ORDER_FIELDS_MASKED as $field ) {
+			if ( array_key_exists( $field, $data ) ) {
+				$data[ $field ] = self::placeholder( $data[ $field ] );
+			}
+		}
+
+		$data['meta_data'] = $this->mask_meta_data( $data['meta_data'] ?? array() );
+
+		foreach ( array( 'line_items', 'shipping_lines', 'fee_lines', 'coupon_lines', 'tax_lines' ) as $item_type ) {
+			foreach ( $data[ $item_type ] ?? array() as $item_id => $item ) {
+				$data[ $item_type ][ $item_id ]['meta_data'] = $this->mask_meta_data( $item['meta_data'] ?? array() );
+			}
+		}
+
+		return $data;
+	}
+
+	/**
+	 * Mask the values of the meta data whose keys look sensitive, keeping every key readable.
+	 *
+	 * @param \WC_Meta_Data[]|array $meta_data The meta data.
+	 *
+	 * @return array
+	 */
+	protected function mask_meta_data( $meta_data ) {
+		$masked_keys = array_merge( self::KEYS_MASKED, self::META_KEYS_MASKED );
+
+		$masked = array();
+		foreach ( $meta_data as $meta ) {
+			$meta = $meta instanceof \WC_Meta_Data ? $meta->get_data() : (array) $meta;
+
+			if ( self::is_masked_key( $meta['key'] ?? '', $masked_keys ) ) {
+				$meta['value'] = self::placeholder( $meta['value'] ?? null );
+			}
+
+			$masked[] = $meta;
+		}
+
+		return $masked;
+	}
+
+	/**
+	 * Mask the log lines for an order. The JSON payload of a line is masked by key name, and
+	 * any WooCommerce order key is masked wherever it appears, such as in a confirmation URL.
+	 *
+	 * @param string[] $log_lines The raw log lines.
+	 *
+	 * @return string[]
+	 */
+	protected function mask_log_lines( $log_lines ) {
+		if ( ! $this->is_masking_enabled() ) {
+			return array_map( 'stripslashes', $log_lines );
+		}
+
+		$masked_keys = self::KEYS_MASKED;
+
+		$masked = array();
+		foreach ( $log_lines as $line ) {
+			$json_start = strpos( $line, '{' );
+			$payload    = false !== $json_start ? json_decode( substr( $line, $json_start ), true ) : null;
+
+			if ( is_array( $payload ) ) {
+				$line = substr( $line, 0, $json_start ) . wp_json_encode( $this->mask_by_key( $payload, $masked_keys ), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
+			} else {
+				$line = stripslashes( $line );
+			}
+
+			$masked[] = preg_replace( '/wc_order_[A-Za-z0-9]+/', self::REDACTED, $line );
+		}
+
+		return $masked;
+	}
+
+	/**
+	 * Mask the values in an array whose keys look sensitive, at any depth.
+	 *
+	 * @param array    $data        The data to mask.
+	 * @param string[] $masked_keys The key fragments to mask.
+	 *
+	 * @return array
+	 */
+	private function mask_by_key( $data, $masked_keys ) {
+		foreach ( $data as $key => $value ) {
+			if ( is_string( $key ) && self::is_masked_key( $key, $masked_keys ) ) {
+				$data[ $key ] = self::placeholder( $value );
+			} elseif ( is_array( $value ) ) {
+				$data[ $key ] = $this->mask_by_key( $value, $masked_keys );
+			} elseif ( is_string( $value ) && in_array( substr( ltrim( $value ), 0, 1 ), array( '{', '[' ), true ) ) {
+				// A request body is often logged as a JSON encoded string.
+				$decoded = json_decode( $value, true );
+
+				if ( is_array( $decoded ) ) {
+					$data[ $key ] = wp_json_encode( $this->mask_by_key( $decoded, $masked_keys ), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
+				}
+			}
+		}
+
+		return $data;
+	}
+
+	/**
+	 * Whether a key contains one of the masked key fragments, ignoring case and reading '-' as '_'.
+	 *
+	 * @param string   $key         The key to check.
+	 * @param string[] $masked_keys The key fragments to mask.
+	 *
+	 * @return bool
+	 */
+	private static function is_masked_key( $key, $masked_keys ) {
+		$key = str_replace( '-', '_', strtolower( (string) $key ) );
+
+		foreach ( (array) $masked_keys as $masked_key ) {
+			if ( '' !== $masked_key && false !== strpos( $key, strtolower( $masked_key ) ) ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * The placeholder for a masked value, telling a value that was there from an empty one.
+	 *
+	 * @param mixed $value The value being masked.
+	 *
+	 * @return string
+	 */
+	private static function placeholder( $value ) {
+		return ( null === $value || '' === $value || array() === $value ) ? self::MISSING : self::REDACTED;
 	}
 
 	/**
