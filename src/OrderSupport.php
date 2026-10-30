@@ -65,6 +65,18 @@ class OrderSupport {
 		'organization_registration_id',
 		'tracking_number',
 		'tracking_uri',
+		'passwd',
+		'api_key',
+		'apikey',
+		'credential',
+		'private_key',
+		'signature',
+		'cookie',
+		'csrf',
+		'cvv',
+		'cvc',
+		'card_number',
+		'iban',
 	);
 
 	/**
@@ -182,7 +194,7 @@ class OrderSupport {
 
 			$result['orders'][ $order_id ] = array(
 				'wc_order'          => $order_data[ $order_id ] ?? array(),
-				'integration_order' => $this->get_integration_order_data( $order ),
+				'integration_order' => $this->mask_integration_order_data( $this->get_integration_order_data( $order ) ),
 				'logs'              => $this->mask_log_lines( $log_data[ $order_id ] ?? array() ),
 			);
 		}
@@ -264,6 +276,9 @@ class OrderSupport {
 	 * @return array
 	 */
 	protected function mask_order_data( $data ) {
+		// Collect the customer's own values before they are masked, to find them in the order notes.
+		$personal_values = $this->get_personal_values( $data );
+
 		foreach ( array( 'billing', 'shipping' ) as $address_type ) {
 			foreach ( $data[ $address_type ] ?? array() as $field => $value ) {
 				if ( ! in_array( $field, self::ADDRESS_KEPT, true ) ) {
@@ -286,7 +301,97 @@ class OrderSupport {
 			}
 		}
 
+		$data['order_comments'] = $this->mask_order_notes( $data['order_comments'] ?? array(), $personal_values );
+
 		return $data;
+	}
+
+	/**
+	 * Get the customer's personal values from the order data, longest first; values shorter than three characters are omitted because they would match too much.
+	 *
+	 * @param array $data The unmasked order data.
+	 *
+	 * @return string[]
+	 */
+	private function get_personal_values( $data ) {
+		$values = array();
+		foreach ( array( 'billing', 'shipping' ) as $address_type ) {
+			foreach ( $data[ $address_type ] ?? array() as $field => $value ) {
+				if ( ! in_array( $field, self::ADDRESS_KEPT, true ) ) {
+					$values[] = $value;
+				}
+			}
+		}
+
+		$values[] = $data['customer_ip_address'] ?? '';
+
+		$values = array_filter(
+			array_unique( array_map( 'trim', array_filter( $values, 'is_string' ) ) ),
+			function ( $value ) {
+				return strlen( $value ) >= 3;
+			}
+		);
+
+		usort(
+			$values,
+			function ( $a, $b ) {
+				return strlen( $b ) - strlen( $a );
+			}
+		);
+
+		return $values;
+	}
+
+	/**
+	 * Mask the customer's own personal values wherever they appear in the order notes. The notes
+	 * are kept, since what happened to the order is what support needs most.
+	 *
+	 * @param object[] $notes           The order notes.
+	 * @param string[] $personal_values The customer's personal values.
+	 *
+	 * @return object[]
+	 */
+	private function mask_order_notes( $notes, $personal_values ) {
+		if ( empty( $personal_values ) ) {
+			return $notes;
+		}
+
+		$patterns = array_map(
+			function ( $value ) {
+				// Match whole values only, so a name is not masked inside another word.
+				return '/(?<![\p{L}\p{N}])' . preg_quote( $value, '/' ) . '(?![\p{L}\p{N}])/iu';
+			},
+			$personal_values
+		);
+
+		$masked = array();
+		foreach ( $notes as $note ) {
+			$note = clone $note;
+
+			if ( isset( $note->content ) && is_string( $note->content ) ) {
+				$content       = preg_replace( $patterns, self::REDACTED, $note->content );
+				$note->content = null === $content ? self::REDACTED : $content;
+			}
+
+			$masked[] = $note;
+		}
+
+		return $masked;
+	}
+
+	/**
+	 * Mask the integration's order data by key name, since it often repeats the customer's details.
+	 *
+	 * @param array $data The integration order data.
+	 *
+	 * @return array
+	 */
+	protected function mask_integration_order_data( $data ) {
+		if ( ! is_array( $data ) || ! $this->is_masking_enabled() ) {
+			return $data;
+		}
+
+		return $this->mask_by_key( $data, self::KEYS_MASKED );
 	}
 
 	/**
@@ -305,6 +410,9 @@ class OrderSupport {
 
 			if ( self::is_masked_key( $meta['key'] ?? '', $masked_keys ) ) {
 				$meta['value'] = self::placeholder( $meta['value'] ?? null );
+			} else {
+				// A meta value can be an array or a JSON string with sensitive keys of its own.
+				$meta['value'] = $this->mask_value( $meta['value'] ?? null, $masked_keys );
 			}
 
 			$masked[] = $meta;
@@ -357,19 +465,37 @@ class OrderSupport {
 		foreach ( $data as $key => $value ) {
 			if ( is_string( $key ) && self::is_masked_key( $key, $masked_keys ) ) {
 				$data[ $key ] = self::placeholder( $value );
-			} elseif ( is_array( $value ) ) {
-				$data[ $key ] = $this->mask_by_key( $value, $masked_keys );
-			} elseif ( is_string( $value ) && in_array( substr( ltrim( $value ), 0, 1 ), array( '{', '[' ), true ) ) {
-				// A request body is often logged as a JSON encoded string.
-				$decoded = json_decode( $value, true );
-
-				if ( is_array( $decoded ) ) {
-					$data[ $key ] = wp_json_encode( $this->mask_by_key( $decoded, $masked_keys ), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
-				}
+			} else {
+				$data[ $key ] = $this->mask_value( $value, $masked_keys );
 			}
 		}
 
 		return $data;
+	}
+
+	/**
+	 * Mask the sensitive keys inside a value, when it is an array or a JSON encoded string.
+	 *
+	 * @param mixed    $value       The value to mask.
+	 * @param string[] $masked_keys The key fragments to mask.
+	 *
+	 * @return mixed
+	 */
+	private function mask_value( $value, $masked_keys ) {
+		if ( is_array( $value ) ) {
+			return $this->mask_by_key( $value, $masked_keys );
+		}
+
+		// A request body or a meta value is often stored as a JSON encoded string.
+		if ( is_string( $value ) && in_array( substr( ltrim( $value ), 0, 1 ), array( '{', '[' ), true ) ) {
+			$decoded = json_decode( $value, true );
+
+			if ( is_array( $decoded ) ) {
+				return wp_json_encode( $this->mask_by_key( $decoded, $masked_keys ), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
+			}
+		}
+
+		return $value;
 	}
 
 	/**
