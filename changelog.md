@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+* The "Export order for support" JSON export now applies the `krokedil_wp_api_mask_log_data` filter from krokedil/wp-api, using the log context as its slug. The same filter can disable masking for both the plugin's logs and the export.
+
 ------------------
 
 ## [1.1.1] - 2026-10-27
